@@ -149,6 +149,12 @@ func GetEvents(w http.ResponseWriter, r *http.Request) {
 		Meta:          meta,
 	}, utils.CacheTTLEventsList)
 
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	for i := range eventsResponse {
+		eventsResponse[i].ImageURL = utils.PrependBaseURL(eventsResponse[i].ImageURL, baseURL)
+	}
+
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
 		"events": eventsResponse,
 	}, meta)
@@ -198,6 +204,10 @@ func GetEventBySlug(w http.ResponseWriter, r *http.Request) {
 	// Cache the response
 	_ = utils.CacheSet(ctx, cacheKey, response, utils.CacheTTLEventDetail)
 
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
+
 	utils.RespondSuccess(w, http.StatusOK, response, nil)
 }
 
@@ -244,6 +254,10 @@ func GetEventByID(w http.ResponseWriter, r *http.Request) {
 
 	// Cache the response
 	_ = utils.CacheSet(ctx, cacheKey, response, utils.CacheTTLEventDetail)
+
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, response, nil)
 }
@@ -523,6 +537,10 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:  event.CreatedAt,
 		UpdatedAt:  event.UpdatedAt,
 	}
+
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
 		"message": "Event updated successfully",

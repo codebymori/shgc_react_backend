@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"sentul-golf-be/config"
 	"sentul-golf-be/models"
@@ -24,7 +23,7 @@ func GetHoles(w http.ResponseWriter, r *http.Request) {
 		// Cache hit - add BASE_URL and return
 		baseURL := config.GetEnv("BASE_URL", "")
 		for i := range holes {
-			holes[i].ImageURL = prependBaseURL(holes[i].ImageURL, baseURL)
+			holes[i].ImageURL = utils.PrependBaseURL(holes[i].ImageURL, baseURL)
 		}
 		
 		utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
@@ -46,7 +45,7 @@ func GetHoles(w http.ResponseWriter, r *http.Request) {
 	// Add BASE_URL to all image URLs for response
 	baseURL := config.GetEnv("BASE_URL", "")
 	for i := range holes {
-		holes[i].ImageURL = prependBaseURL(holes[i].ImageURL, baseURL)
+		holes[i].ImageURL = utils.PrependBaseURL(holes[i].ImageURL, baseURL)
 	}
 
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
@@ -66,7 +65,7 @@ func GetHole(w http.ResponseWriter, r *http.Request) {
 	if err := utils.CacheGet(ctx, cacheKey, &hole); err == nil {
 		// Cache hit - add BASE_URL and return
 		baseURL := config.GetEnv("BASE_URL", "")
-		hole.ImageURL = prependBaseURL(hole.ImageURL, baseURL)
+		hole.ImageURL = utils.PrependBaseURL(hole.ImageURL, baseURL)
 		
 		utils.RespondSuccess(w, http.StatusOK, hole, nil)
 		return
@@ -84,21 +83,9 @@ func GetHole(w http.ResponseWriter, r *http.Request) {
 
 	// Add BASE_URL to image URL for response
 	baseURL := config.GetEnv("BASE_URL", "")
-	hole.ImageURL = prependBaseURL(hole.ImageURL, baseURL)
+	hole.ImageURL = utils.PrependBaseURL(hole.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, hole, nil)
-}
-
-// prependBaseURL adds BASE_URL to image URL if it's not already a full URL
-func prependBaseURL(imageURL, baseURL string) string {
-	if imageURL == "" || baseURL == "" {
-		return imageURL
-	}
-	// Check if URL is already absolute
-	if strings.HasPrefix(imageURL, "http://") || strings.HasPrefix(imageURL, "https://") {
-		return imageURL
-	}
-	return baseURL + imageURL
 }
 
 // CreateHole creates a new hole with image upload
@@ -194,7 +181,7 @@ func CreateHole(w http.ResponseWriter, r *http.Request) {
 
 	// Add BASE_URL to response
 	baseURL := config.GetEnv("BASE_URL", "")
-	hole.ImageURL = prependBaseURL(hole.ImageURL, baseURL)
+	hole.ImageURL = utils.PrependBaseURL(hole.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusCreated, hole, nil)
 }
@@ -309,7 +296,7 @@ func UpdateHole(w http.ResponseWriter, r *http.Request) {
 
 	// Add BASE_URL to response
 	baseURL := config.GetEnv("BASE_URL", "")
-	hole.ImageURL = prependBaseURL(hole.ImageURL, baseURL)
+	hole.ImageURL = utils.PrependBaseURL(hole.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
 		"message":        "Hole updated successfully",
@@ -409,7 +396,3 @@ func ReorderHoles(w http.ResponseWriter, r *http.Request) {
 		"message": "Holes reordered successfully",
 	}, nil)
 }
-
-
-
-

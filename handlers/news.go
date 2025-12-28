@@ -149,6 +149,12 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 		Meta:         meta,
 	}, utils.CacheTTLNewsList)
 
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	for i := range newsResponse {
+		newsResponse[i].ImageURL = utils.PrependBaseURL(newsResponse[i].ImageURL, baseURL)
+	}
+
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
 		"news": newsResponse,
 	}, meta)
@@ -196,6 +202,10 @@ func GetNewsBySlug(w http.ResponseWriter, r *http.Request) {
 	// Cache the response
 	_ = utils.CacheSet(ctx, cacheKey, response, utils.CacheTTLNewsDetail)
 
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
+
 	utils.RespondSuccess(w, http.StatusOK, response, nil)
 }
 
@@ -240,6 +250,10 @@ func GetNewsByID(w http.ResponseWriter, r *http.Request) {
 
 	// Cache the response
 	_ = utils.CacheSet(ctx, cacheKey, response, utils.CacheTTLNewsDetail)
+
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, response, nil)
 }
@@ -457,6 +471,10 @@ func UpdateNews(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: news.CreatedAt,
 		UpdatedAt: news.UpdatedAt,
 	}
+
+	// Add BASE_URL to response
+	baseURL := config.GetEnv("BASE_URL", "")
+	response.ImageURL = utils.PrependBaseURL(response.ImageURL, baseURL)
 
 	utils.RespondSuccess(w, http.StatusOK, map[string]interface{}{
 		"message": "News updated successfully",

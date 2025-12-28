@@ -209,14 +209,8 @@ func SaveImage(file multipart.File, header *multipart.FileHeader, subfolder stri
 		return nil, errors.New("failed to get file info")
 	}
 
-	// Get BASE_URL from environment, default to empty string for relative URLs
-	baseURL := os.Getenv("BASE_URL")
+	// Return relative URL path
 	imageURL := fmt.Sprintf("/uploads/%s/%s", subfolder, filename)
-	
-	// Prepend BASE_URL if it's set
-	if baseURL != "" {
-		imageURL = baseURL + imageURL
-	}
 
 	result := &ImageUploadResult{
 		Filename: filename,
@@ -305,4 +299,27 @@ func ReadAndValidateImage(file multipart.File, header *multipart.FileHeader) ([]
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// PrependBaseURL adds BASE_URL to image URL if it's not already a full URL
+// It also handles fixing stale absolute URLs that point to local uploads
+func PrependBaseURL(imageURL, baseURL string) string {
+	if imageURL == "" || baseURL == "" {
+		return imageURL
+	}
+	
+	// If the URL is a local upload path (contains /uploads/), 
+	// ensure it uses the current BASE_URL regardless of what's stored in DB
+	if idx := strings.Index(imageURL, "/uploads/"); idx != -1 {
+		// Strip everything before /uploads/ (including old domain/port)
+		// e.g., "http://localhost:8000/uploads/img.jpg" -> "/uploads/img.jpg"
+		cleanPath := imageURL[idx:]
+		return baseURL + cleanPath
+	}
+
+	// Check if URL is already absolute (external URL)
+	if strings.HasPrefix(imageURL, "http://") || strings.HasPrefix(imageURL, "https://") {
+		return imageURL
+	}
+	return baseURL + imageURL
 }
