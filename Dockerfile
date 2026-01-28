@@ -7,7 +7,9 @@ RUN go build -o main .
 
 # Stage 2: Run
 FROM alpine:latest
-WORKDIR /root/
+# Ubah /root/ jadi /app supaya sinkron dengan volume di docker-compose
+WORKDIR /app
+# Ambil binary ke folder /app
 COPY --from=builder /app/main .
 EXPOSE 8080
 CMD ["./main"]
