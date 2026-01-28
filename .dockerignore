@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Temporary files
+temp/
+*.tmp
+*.log
+
+# Uploads (jika tidak perlu di image)
+uploads/
+
+# Binary files
+handlers/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+**/*_test.go
+
+# Development files
+.env
+.env.local
+.env.*.local
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Dependencies (akan di-download saat build)
+vendor/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Migration files (jika sudah dijalankan)
+# migrations/
