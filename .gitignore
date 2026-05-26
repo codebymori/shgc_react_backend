@@ -32,3 +32,6 @@ Thumbs.db
 # Build
 /bin/
 /dist/
+
+# Uploads
+uploads/

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"regexp"
+
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -23,6 +25,12 @@ func SanitizeHTML(html string) string {
 	// - Line breaks: br
 	// - Tables: table, thead, tbody, tr, th, td
 	
+	// Allow Quill text alignment and indentation classes (e.g. ql-align-justify, ql-indent-1)
+	// It allows multiple classes separated by spaces as long as they all start with ql-
+	policy.AllowAttrs("class").Matching(
+		regexp.MustCompile(`^(?:\s*ql-[a-zA-Z0-9\-]+\s*)+$`),
+	).OnElements("p", "h1", "h2", "h3", "h4", "h5", "h6", "li")
+
 	// Sanitize and return
 	return policy.Sanitize(html)
 }
