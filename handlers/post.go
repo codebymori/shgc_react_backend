@@ -33,6 +33,7 @@ type PostResponse struct {
 // If type=event, returns only events
 func GetPosts(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
+	baseURL := config.GetEnv("BASE_URL", "")
 	
 	// Get type parameter (optional)
 	typeParam := r.URL.Query().Get("type")
@@ -91,7 +92,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 				Excerpt:   n.Excerpt,
 				Slug:      n.Slug,
 				Published: n.Published,
-				ImageURL:  n.ImageURL,
+				ImageURL:  utils.PrependBaseURL(n.ImageURL, baseURL),
 				AuthorID:  n.AuthorID,
 				Author: SimplifiedAuthor{
 					ID:   n.Author.ID,
@@ -125,7 +126,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 				Excerpt:   e.Excerpt,
 				Slug:      e.Slug,
 				Published: e.Published,
-				ImageURL:  e.ImageURL,
+				ImageURL:  utils.PrependBaseURL(e.ImageURL, baseURL),
 				AuthorID:  e.AuthorID,
 				Author: SimplifiedAuthor{
 					ID:   e.Author.ID,
@@ -166,7 +167,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 				Excerpt:   n.Excerpt,
 				Slug:      n.Slug,
 				Published: n.Published,
-				ImageURL:  n.ImageURL,
+				ImageURL:  utils.PrependBaseURL(n.ImageURL, baseURL),
 				AuthorID:  n.AuthorID,
 				Author: SimplifiedAuthor{
 					ID:   n.Author.ID,
@@ -186,7 +187,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 				Excerpt:    e.Excerpt,
 				Slug:       e.Slug,
 				Published:  e.Published,
-				ImageURL:   e.ImageURL,
+				ImageURL:   utils.PrependBaseURL(e.ImageURL, baseURL),
 				AuthorID:   e.AuthorID,
 				Author: SimplifiedAuthor{
 					ID:   e.Author.ID,
