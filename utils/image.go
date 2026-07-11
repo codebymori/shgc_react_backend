@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -244,6 +245,78 @@ func DeleteImage(imagePath string) error {
 	}
 
 	return nil
+}
+
+// DeleteContentImages parses HTML content from a rich text editor (Quill) and
+// deletes all inline images that were uploaded to /uploads/content/.
+// This should be called whenever an article/event is deleted or its content replaced.
+func DeleteContentImages(htmlContent string) {
+	if htmlContent == "" {
+		return
+	}
+
+	// Match all src attributes that point to our local /uploads/content/ folder.
+	// We only clean up content images — thumbnail images (news/events) are handled separately.
+	// Pattern: src="/uploads/content/..." or src="http://...something.../uploads/content/..."
+	re := regexp.MustCompile(`src="([^"]*\/uploads\/content\/[^"]+)"`)
+	matches := re.FindAllStringSubmatch(htmlContent, -1)
+
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+		rawURL := match[1] // e.g. "http://localhost:8000/uploads/content/abc.jpg"
+
+		// Extract just the /uploads/content/... part
+		idx := strings.Index(rawURL, "/uploads/content/")
+		if idx == -1 {
+			continue
+		}
+		localPath := rawURL[idx:] // "/uploads/content/abc.jpg"
+
+		// Fire and forget — log error but don't fail the parent operation
+		if err := DeleteImage(localPath); err != nil {
+			fmt.Printf("Warning: failed to delete content image %s: %v\n", localPath, err)
+		}
+	}
+}
+
+// extractContentImagePaths parses HTML and returns a set of /uploads/content/* local paths found in it.
+func extractContentImagePaths(htmlContent string) map[string]struct{} {
+	paths := make(map[string]struct{})
+	if htmlContent == "" {
+		return paths
+	}
+	re := regexp.MustCompile(`src="([^"]*\/uploads\/content\/[^"]+)"`)
+	matches := re.FindAllStringSubmatch(htmlContent, -1)
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+		idx := strings.Index(match[1], "/uploads/content/")
+		if idx == -1 {
+			continue
+		}
+		paths[match[1][idx:]] = struct{}{}
+	}
+	return paths
+}
+
+// DeleteOrphanContentImages compares old and new HTML content and deletes
+// any /uploads/content/ images that were present in oldContent but are no longer in newContent.
+// Call this during UpdateNews / UpdateEvent when the content field changes.
+func DeleteOrphanContentImages(oldContent, newContent string) {
+	oldPaths := extractContentImagePaths(oldContent)
+	newPaths := extractContentImagePaths(newContent)
+
+	for path := range oldPaths {
+		if _, stillUsed := newPaths[path]; !stillUsed {
+			// Image was removed from the editor — delete the file
+			if err := DeleteImage(path); err != nil {
+				fmt.Printf("Warning: failed to delete orphan content image %s: %v\n", path, err)
+			}
+		}
+	}
 }
 
 // ValidateImageBuffer validates image content from a byte buffer

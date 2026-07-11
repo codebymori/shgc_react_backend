@@ -422,12 +422,16 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		updated["title"] = true
 	}
 	if content := r.FormValue("content"); content != "" {
+		// Save old content before overwriting (for orphan image cleanup)
+		oldContent := event.Content
 		// Sanitize HTML content to prevent XSS
 		event.Content = utils.SanitizeHTML(content)
 		// Regenerate excerpt from sanitized content
 		event.Excerpt = utils.MakeExcerpt(event.Content, 160)
 		updated["content"] = true
 		updated["excerpt"] = true
+		// Delete inline images that were removed from the content
+		utils.DeleteOrphanContentImages(oldContent, event.Content)
 	}
 	if slug := r.FormValue("slug"); slug != "" {
 		event.Slug = slug
@@ -569,8 +573,11 @@ func DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete the image file
+	// Delete the thumbnail image file
 	utils.DeleteImage(event.ImageURL)
+
+	// Delete all inline images embedded in the content (uploaded via rich text editor)
+	utils.DeleteContentImages(event.Content)
 
 	// Invalidate caches
 	ctx := r.Context()

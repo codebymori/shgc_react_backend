@@ -56,6 +56,7 @@ func createUploadDirectories() {
 		"./uploads/news",
 		"./uploads/events",
 		"./uploads/holes",
+		"./uploads/content", // For inline images in rich text editor
 	}
 
 	for _, dir := range directories {

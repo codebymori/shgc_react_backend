@@ -59,6 +59,11 @@ func SetupRoutes() *mux.Router {
 	adminUsers.HandleFunc("/{id}", handlers.UpdateUser).Methods("PUT")
 	adminUsers.HandleFunc("/{id}", handlers.DeleteUser).Methods("DELETE")
 
+	// Admin-only routes - content image upload (for rich text editor)
+	protected.HandleFunc("/admin/upload-image", handlers.UploadContentImage).Methods("POST")
+	// Delete a single content image in real-time (when user removes it from editor)
+	protected.HandleFunc("/admin/content-image", handlers.DeleteSingleContentImage).Methods("DELETE")
+
 	// Admin-only routes - news management (including GET all news)
 	adminNews := protected.PathPrefix("/news").Subrouter()
 	adminNews.Use(middleware.RequireAdmin)

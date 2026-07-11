@@ -384,12 +384,16 @@ func UpdateNews(w http.ResponseWriter, r *http.Request) {
 		updated["title"] = true
 	}
 	if content := r.FormValue("content"); content != "" {
+		// Save old content before overwriting (for orphan image cleanup)
+		oldContent := news.Content
 		// Sanitize HTML content to prevent XSS
 		news.Content = utils.SanitizeHTML(content)
 		// Regenerate excerpt from sanitized content
 		news.Excerpt = utils.MakeExcerpt(news.Content, 160)
 		updated["content"] = true
 		updated["excerpt"] = true
+		// Delete inline images that were removed from the content
+		utils.DeleteOrphanContentImages(oldContent, news.Content)
 	}
 	if slug := r.FormValue("slug"); slug != "" {
 		news.Slug = slug
@@ -503,8 +507,11 @@ func DeleteNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete the image file
+	// Delete the thumbnail image file
 	utils.DeleteImage(news.ImageURL)
+
+	// Delete all inline images embedded in the content (uploaded via rich text editor)
+	utils.DeleteContentImages(news.Content)
 
 	// Invalidate caches
 	ctx := r.Context()
